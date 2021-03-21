@@ -9,6 +9,7 @@ import pandas as pd
 import torch
 import torch.optim as optim
 import torch.utils.data
+import numpy as np
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -75,7 +76,7 @@ def _get_data_loader(batch_size, data_dir, is_training=True):
         sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights))
         return torch.utils.data.DataLoader(train_ds, batch_size=batch_size, sampler=sampler)
     else:
-        return train_X, train_y
+        return torch.utils.data.DataLoader(train_ds, batch_size=batch_size)
 
 
 def train(model, train_loader, epochs, optimizer, loss_fn, device):
@@ -111,9 +112,18 @@ def train(model, train_loader, epochs, optimizer, loss_fn, device):
         print("Epoch: {}, BCELoss: {}".format(epoch, total_loss / len(train_loader)))
 
 
-def log_eval_metrics(model, val_X, val_y, device):
-    val_X = val_X.to(device)
-    predict_y = model(val_X).cpu().detach().numpy()
+def log_eval_metrics(model, val_loader, device):
+    val_y = []
+    predict_y = []
+    
+    for batch in val_loader:
+        batch_X, batch_y = batch
+        batch_X = batch_X.to(device)
+        predict_y.append(model(batch_X).cpu().detach().numpy())
+        val_y.append(batch_y)
+
+    val_y = np.concatenate(val_y, axis=0)
+    predict_y = np.concatenate(predict_y, axis=0)
 
     metrics = defaultdict(list)
     for label in range(6):
@@ -178,7 +188,7 @@ if __name__ == '__main__':
 
     # Load the training data.
     train_loader = _get_data_loader(args.batch_size, args.train_data_dir, is_training=True)
-    val_X, val_y = _get_data_loader(args.batch_size, args.val_data_dir, is_training=False)
+    val_loader = _get_data_loader(args.batch_size, args.val_data_dir, is_training=False)
 
     # Build the model.
     model = LSTMClassifier(args.embedding_dim, args.num_lstm_layers, args.hidden_dims,
@@ -197,7 +207,7 @@ if __name__ == '__main__':
     loss_fn = torch.nn.BCELoss()
 
     train(model, train_loader, args.epochs, optimizer, loss_fn, device)
-    log_eval_metrics(model, val_X, val_y, device)
+    log_eval_metrics(model, val_loader, device)
 
     os.makedirs(args.model_dir, exist_ok=True)
 
