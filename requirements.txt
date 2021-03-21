@@ -1,0 +1,6 @@
+nltk
+pandas
+numpy
+torch
+sklearn
+joblib
