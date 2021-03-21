@@ -62,14 +62,14 @@ def _get_data_loader(batch_size, data_dir, is_training=True):
     train_data = joblib.load(os.path.join(data_dir, 'data.joblib'))
 
     # first 6 are the targets
-    train_y = torch.from_numpy(train_data[:250, :6]).float()
-    train_X = torch.from_numpy(train_data[:250, 6:]).long()
+    train_y = torch.from_numpy(train_data[:, :6]).float()
+    train_X = torch.from_numpy(train_data[:, 6:]).long()
     train_ds = torch.utils.data.TensorDataset(train_X, train_y)
 
     if is_training:
         print('Upsampling records with any positive labels...')
         # upsample examples where any label=1. should help the class imbalance...
-        any_label = train_data[:250, :6].max(axis=1)
+        any_label = train_data[:, :6].max(axis=1)
         class_weights = [any_label.mean(), 1 - any_label.mean()]
         weights = [class_weights[any_label[i]] for i in range(any_label.shape[0])]
         sampler = torch.utils.data.sampler.WeightedRandomSampler(weights, len(weights))

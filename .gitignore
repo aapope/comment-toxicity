@@ -1,6 +1,7 @@
 # custom
 data/
 processed/
+model/
 
 
 # Byte-compiled / optimized / DLL files
