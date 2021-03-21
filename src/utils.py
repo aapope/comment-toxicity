@@ -77,7 +77,7 @@ def encode_single_input(text, vocab, max_length=500):
         if i >= max_length:
             break
         encoded[i] = vocab.get(word, vocab[MISSING_IN_VOCAB])
-    encoded.insert(0, min(len(text_array)), max_length)
+    encoded.insert(0, min(len(text_array), max_length))
     return np.array(encoded).reshape(1, -1)
 
 
