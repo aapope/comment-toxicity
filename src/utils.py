@@ -36,9 +36,6 @@ PADDING_IDX = 1
 VOCAB_LOCATION = 'processed/vocab.joblib'
 ENCODED_LOCATION = 'processed/encoded.joblib'
 
-from model import LSTMClassifier
-
-
 #=====================
 
 def _preprocessor(text):
