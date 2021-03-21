@@ -11,13 +11,13 @@ import torch.optim as optim
 import torch.utils.data
 
 from model import LSTMClassifier
-from utils import load_model
+from utils import model_fn
 
 
 def _get_train_data_loader(batch_size, training_dir):
     print("Get train data loader.")
 
-    train_data = joblib.load(os.path.join(training_dir, 'train.joblib'))
+    train_data = joblib.load(os.path.join(training_dir, 'data.joblib'))
 
     # first 6 are the targets
     train_y = torch.from_numpy(train_data[:, :6]).float()
@@ -128,8 +128,8 @@ if __name__ == '__main__':
     with open(model_info_path, 'wb') as f:
         model_info = {
             'embedding_dim': args.embedding_dim,
-            'lstm_layers': args.lstm_layers,
-            'hidden_dim': args.hidden_dims,
+            'num_lstm_layers': args.num_lstm_layers,
+            'hidden_dims': args.hidden_dims,
             'vocab_size': args.vocab_size,
         }
         torch.save(model_info, f)

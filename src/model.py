@@ -6,14 +6,16 @@ from utils import PADDING_IDX
 
 class LSTMClassifier(nn.Module):
 
-    def __init__(self, embedding_dim, num_lstm_layers, hidden_dims, vocab_size):
+    def __init__(self, embedding_dim, num_lstm_layers,
+                 hidden_dims, vocab_size):
         super(LSTMClassifier, self).__init__()
+
+        self.hidden_dims = hidden_dims
 
         self.embedding = nn.Embedding(vocab_size, embedding_dim,
                                       padding_idx=PADDING_IDX)
         self.lstm = nn.LSTM(embedding_dim, hidden_dims[0], num_lstm_layers)
 
-        self.hidden_dims = hidden_dims
         for i in range(1, len(hidden_dims)):
             setattr(self, f'dense_{i}', nn.Linear(in_features=hidden_dims[i-1],
                                                   out_features=hidden_dims[i]))
