@@ -80,6 +80,20 @@ def encode_single_input(text, vocab, max_length=500):
     encoded.insert(0, min(len(text_array), max_length))
     return np.array(encoded).reshape(1, -1)
 
+def decode_text(encoded_text, vocab):
+    # horrible and slow. i should have kept a mapping back to the original input!
+    text_tok = []
+    for i in encoded_text[1:]:
+        if i == vocab[PADDING]:
+            break
+        for k, v in vocab.items():
+            if i == v:
+                text_tok.append(k)
+                break
+                
+    
+    return text_tok
+
 
 def encode_text(df, use_cache=True, vocab_length=10000, max_length=500):
     if use_cache and os.path.exists(VOCAB_LOCATION):
