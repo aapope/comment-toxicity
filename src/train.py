@@ -128,7 +128,6 @@ def log_eval_metrics(model, val_loader, device, epoch=None):
 
     metrics = defaultdict(list)
     for label in range(6):
-        print(label)
         val_y_class = val_y[:, label]
         predict_y_class = predict_y[:, label]
         predict_y_class_label = predict_y_class.round()
@@ -172,8 +171,8 @@ if __name__ == '__main__':
                         help='size of the word embeddings (default: 32)')
     parser.add_argument('--num-lstm-layers', type=int, default=1, metavar='N',
                         help='number of LSTM layers (default: 1)')
-    parser.add_argument('--hidden-dims', type=int, default=[100], metavar='N',
-                        nargs='+', help='size of the hidden dimensions (default: [100])')
+    parser.add_argument('--hidden-dims', type=str, default='100', metavar='N',
+                        help='size of the hidden dimensions (default: [100])')
     parser.add_argument('--vocab-size', type=int, default=10002, metavar='N',
                         help='size of the vocabulary (default: 10002)')
 
@@ -186,6 +185,7 @@ if __name__ == '__main__':
     parser.add_argument('--num-gpus', type=int, default=os.getenv('SM_NUM_GPUS', '0'))
 
     args = parser.parse_args()
+    hidden_dims = [int(i) for i in args.hidden_dims.split()]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device {}.".format(device))
@@ -197,7 +197,7 @@ if __name__ == '__main__':
     val_loader = _get_data_loader(args.batch_size, args.val_data_dir, is_training=False)
 
     # Build the model.
-    model = LSTMClassifier(args.embedding_dim, args.num_lstm_layers, args.hidden_dims,
+    model = LSTMClassifier(args.embedding_dim, args.num_lstm_layers, hidden_dims,
                            args.vocab_size).to(device)
     print(model)
 
@@ -205,7 +205,7 @@ if __name__ == '__main__':
         model.word_dict = joblib.load(f)
 
     print("Model loaded with embedding_dim {}, lstm_layers {}, hidden_dims {}, vocab_size {}.".format(
-        args.embedding_dim, args.num_lstm_layers, args.hidden_dims, args.vocab_size
+        args.embedding_dim, args.num_lstm_layers, hidden_dims, args.vocab_size
     ))
 
     # Train the model.
@@ -223,7 +223,7 @@ if __name__ == '__main__':
         model_info = {
             'embedding_dim': args.embedding_dim,
             'num_lstm_layers': args.num_lstm_layers,
-            'hidden_dims': args.hidden_dims,
+            'hidden_dims': hidden_dims,
             'vocab_size': args.vocab_size,
         }
         torch.save(model_info, f)
