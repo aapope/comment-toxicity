@@ -4,3 +4,4 @@ numpy
 torch
 sklearn
 joblib
+symspellpy

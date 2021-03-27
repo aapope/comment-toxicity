@@ -20,6 +20,8 @@ except:
     from nltk.stem import WordNetLemmatizer 
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
+import pkg_resources
+from symspellpy import SymSpell, Verbosity
 
 try:
     LEMMATIZER = WordNetLemmatizer()
@@ -28,6 +30,13 @@ except:
     nltk.download('all')
     LEMMATIZER = WordNetLemmatizer()
     STOP_WORDS = set(stopwords.words('english'))
+SYM_SPELL = SymSpell(max_dictionary_edit_distance=3, prefix_length=7)
+SYM_SPELL.load_dictionary(
+    pkg_resources.resource_filename("symspellpy", "frequency_dictionary_en_82_765.txt"),
+    term_index=0,
+    count_index=1
+)
+
 MISSING_IN_VOCAB = '<mvt>'
 MISSING_IDX = 0
 PADDING = '<pad>'
@@ -49,7 +58,20 @@ def _preprocessor(text):
 
 
 def _tokenizer(text):
-    return [LEMMATIZER.lemmatize(word) for word in word_tokenize(text) if word not in STOP_WORDS]
+    result = []
+    for word in word_tokenize(text):
+        if word in STOP_WORDS:
+            continue
+        # attempt to fix spelling errors
+        suggestions = SYM_SPELL.lookup(
+            word,
+            Verbosity.CLOSEST,
+            max_edit_distance=2,
+            include_unknown=True
+        )
+        result.append(LEMMATIZER.lemmatize(suggestions[0].term))
+    
+    return result
 
 
 def _create_vocab(tokenized_array, vocab_length):
