@@ -79,7 +79,7 @@ def _get_data_loader(batch_size, data_dir, is_training=True):
         return torch.utils.data.DataLoader(train_ds, batch_size=batch_size)
 
 
-def train(model, train_loader, epochs, optimizer, loss_fn, device):
+def train(model, train_loader, val_loader, epochs, optimizer, loss_fn, device):
     """
     This is the training method that is called by the PyTorch training script. The parameters
     passed are as follows:
@@ -110,9 +110,10 @@ def train(model, train_loader, epochs, optimizer, loss_fn, device):
             
             total_loss += loss.data.item()
         print("Epoch: {}, BCELoss: {}".format(epoch, total_loss / len(train_loader)))
+        log_eval_metrics(model, val_loader, device, epoch)
 
 
-def log_eval_metrics(model, val_loader, device):
+def log_eval_metrics(model, val_loader, device, epoch=None):
     val_y = []
     predict_y = []
     
@@ -142,7 +143,12 @@ def log_eval_metrics(model, val_loader, device):
         print(f'{name} at class level: {results}')
         avg_metrics[name] = sum(results) / len(results)
 
-    print(*[f'{name}: {result};' for name, result in avg_metrics.items()])
+
+    results = [f'{name}: {result};' for name, result in avg_metrics.items()]
+    if epoch is not None:
+        results.insert(0, f'Epoch {epoch};')
+    print(' '.join(results))
+    
     
     
     
@@ -206,7 +212,7 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters())
     loss_fn = torch.nn.BCELoss()
 
-    train(model, train_loader, args.epochs, optimizer, loss_fn, device)
+    train(model, train_loader, val_loader, args.epochs, optimizer, loss_fn, device)
     log_eval_metrics(model, val_loader, device)
 
     os.makedirs(args.model_dir, exist_ok=True)
