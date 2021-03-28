@@ -1,8 +1,10 @@
-#+PROPERTY: header-args :exports none :tangle "~/orgs/bibliography/references.bib"
+#+PROPERTY: header-args :exports none :tangle "~/data/Dev/UdacityMLEngineer/capstone/bibliography/references.bib"
 #+LATEX_CLASS_OPTIONS: [12pt]
-#+LATEX_HEADER: \usepackage[natbib=true]{biblatex} \DeclareFieldFormat{apacase}{#1} \addbibresource{~/orgs/bibliography/references.bib} \usepackage{array} \usepackage{graphicx} \graphicspath{ {./results/eda/}{./results/} }
+#+LATEX_HEADER: \usepackage[natbib=true]{biblatex} \DeclareFieldFormat{apacase}{#1} \addbibresource{~/data/Dev/UdacityMLEngineer/capstone/bibliography/references.bib} \usepackage{array} \usepackage{graphicx} \graphicspath{ {./results/eda/}{./results/} }
 #+LATEX_HEADER: \usepackage{parskip}
 #+OPTIONS: <:nil c:nil todo:nil H:5 num:nil toc:nil
+#+AUTHOR: Andrew Pope
+#+TITLE:Capstone Project - Machine Learning Engineer Nanodegree
 
 * Definition
 
@@ -17,15 +19,15 @@ The main evaluation metric will be the mean label-wise ROC AUC:
 \begin{equation}
 \frac{1}{L} \sum_{l=1}^{L} AUC_{l}
 \end{equation}
-where L is the number of labels (in this case 6). ROC AUC is a good metric for this problem because it's 
+where L is the number of labels (in this case 6). ROC AUC is a good metric for this problem because it's indifferent to the classification threshold and it can handle cases where the label is very sparse, like this.
 
-Additionally, the ROC AUC, precision and recall for each individual label will be analyzed as certain labels will be easier to identify than others.
+Additionally, the ROC AUC, precision and recall for each individual label will be analyzed as certain labels will be easier to identify than others. Accuracy will be reported, but it's not a good metric when there's so much class imbalance.
 * Analysis
 
 ** Data Exploration
 The Kaggle dataset contains two files: the training data with 159,571 examples, and the test data with 153,164. In the test data, there are 89,186 examples without labels--these are Kaggle's final test set--and 63,978 with labels. Since this project wasn't intended to be uploaded to Kaggle, I threw out the unlabeled examples in the test set and combined the remaining examples with the training set for a final size of 223,549 examples across my training, validation, and test sets.
 
-Table \ref{table:1} shows some summary data on each label. There are quite a few examples for the toxic, threat, and insult labels, but very vew for threat. In all, 22.2% of examples have at least one positive label.
+Table \ref{table:1} shows some summary data on each label. There are quite a few examples for the toxic, threat, and insult labels, but very few for threat. In all, 22.2% of examples have at least one positive label.
 
 \begin{center}
 \begin{table}
@@ -49,7 +51,7 @@ These comments have some problematic characteristics. There is quite a bit of pu
 
 ** Exploratory Visualization
 
-Figure \ref{fig:label-corr} shows the correlations between labels. The highest correlations are between each pair of toxic, obscene, and insult. Threat is not highly correlated with any other label because it's so low volume. 
+Figure \ref{fig:label-corr} shows the correlations between labels. The highest correlations are between each pair of toxic, obscene, and insult. Threat is not highly correlated with any other label because it's so sparse.
 
 \begin{figure}
 \centering
@@ -75,9 +77,8 @@ Figure \ref{fig:word-dist} shows a similar pattern for word counts: most comment
 \label{fig:word-dist}
 \end{figure}
 
-
 ** Algorithms and Techniques
-The classifier I used is a multiayer network consisting of an embedding layer, one or many LSTM layers, one or many fully connected layers (these depend on the hyperparameters of the run), and finally a 6-node layer with sigmoid activation, one for each class label. LSTMs should be much more performant on this problem than non-recurrent approaches because context is very important in identifying some of these classes. For example, identifying identity hate will require the model to understand the context in which an identity is being invoked: a comment saying "I'm <X identity> and therefore I hate <something>" is not identity hate, whereas "I hate <X identity>" is. A simple bag of words approach would not do a very good job of telling one from the other. On the other hand, obscenity is probably easy to identify with just a bag of words: either there's an obscene word in the comment or there isn't.
+The classifier I used is a multiayer network consisting of an embedding layer, one or many LSTM layers, one or many fully connected layers with ReLU activations (these depend on the hyperparameters of the run), and finally a 6-node layer with sigmoid activation, one for each class label. LSTMs should be much more performant on this problem than non-recurrent approaches because context is very important in identifying some of these classes. For example, identifying identity hate will require the model to understand the context in which an identity is being invoked: a comment saying "I'm <X identity> and therefore I hate <something>" is not identity hate, whereas "I hate <X identity>" is. A simple bag of words approach would not do a very good job of telling one from the other. On the other hand, obscenity is probably easy to identify with just a bag of words: either there's an obscene word in the comment or there isn't.
 
 ** Benchmark
 Jigsaw/Conversation AI, the company that sponsored the Kaggle competition, have their own model citep:jigsaw-model-project, a convolutional neural network trained with GloVe word embeddings. Their model achieved an ROC AUC of 0.96857. It's not clear to me whether this is on the exact same dataset as used in this project, but it's still a good benchmark nonetheless.
@@ -134,8 +135,6 @@ The second run used the same hyperparameters as the first run, with the only dif
 * Results
 
 ** Model Evaluation and Validation
-After hyperparameter tuning, the best model looks like figure \ref{fig:network}. There's a 32-dimension embedding layer, 2 LSTM layers, a 100-dimension fully connected layer, and finally a 6-dimension output layer with a sigmoid activation function.
-
 \begin{figure}
 \centering
 \includegraphics[width=\textwidth]{network}
@@ -143,18 +142,57 @@ After hyperparameter tuning, the best model looks like figure \ref{fig:network}.
 \label{fig:network}
 \end{figure}
 
-This model had a 0.9717 ROC AUC on the validation set. After finishing training, I evaluated the model on the test set. The summary metrics are shown in table \ref{table:3}. The confusion matrices for each class are in figure \ref{fig:confusion-matrix}. The ROC curves for each class are in figure \ref{fig:roc-curve}.
+After hyperparameter tuning, the best model looks like figure \ref{fig:network}. There's a 32-dimension embedding layer, 2 LSTM layers, a 100-dimension fully connected layer, and finally a 6-dimension output layer with a sigmoid activation function.
 
-EVAL ON THE TEST SET AND CREATE TABLE
+\begin{center}
+\begin{table}
+\begin{tabular}{| m{5em} | m{1.5cm} | m{1.5cm} | m{1.5cm} | m{1.5cm} | m{1.5cm} | m{1.5cm} | m{1.5cm} |}
+\hline
+\multicolumn{2}{|c}{} & \multicolumn{6}{c|}{Label} \\
+\hline
+& \textbf{Average} & Toxic & Severe Toxic & Obscene & Threat & Insult & Identity Hate \\
+\hline
+\textbf{ROC AUC} & 0.970 & 0.960 & 0.982 & 0.981 & 0.964 & 0.972 & 0.962 \\
+\hline
+\textbf{Accuracy} & 96.8\% & 89.6\% & 99.1\% & 97.1\% & 99.7\% & 96.6\% & 99.0\% \\
+\hline
+\textbf{Precision} & 46.4\% & 48.5\% & 42.3\% & 70.2\% & 0.00\% & 67.7\% & 49.7\% \\
+\hline
+\textbf{Recall} & 49.3\% & 88.4\% & 26.0\% & 79.8\% & 0.00\% & 66.8\% & 34.7\% \\
+\hline
+\end{tabular}
+\caption{Test set metrics for the final model}
+\label{table:3}
+\end{table}
+\end{center}
 
-COMBINE THE CONFUSION MATRICES AND ROC CURVES TO CREATE 2 COMBINED FIGURES
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{confusion_matrix}
+\caption{Confusion matrices for each label, evaluated on the final test set}
+\label{fig:confusion-matrix}
+\end{figure}
 
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{roc_curve}
+\caption{ROC curves for each label, evaluated on the final test set}
+\label{fig:roc-curve}
+\end{figure}
+
+
+This model had a 0.9717 ROC AUC on the validation set. After finishing training, I evaluated the model on the test set in final_eval.ipynb. The summary metrics are shown in table \ref{table:3}. The confusion matrices for each class are in figure \ref{fig:confusion-matrix}. The ROC curves for each class are in figure \ref{fig:roc-curve}.
+
+By label, the performance varies pretty significantly. The easier labels to predict seem to be toxic, obscene, and insult. That makes some sense: toxic is the label for which we have the most data, and obscenities and insults could be captured pretty well just by looking at the individual words in the comment without much context. It's also interesting to note that these are the 3 classes that have higher correlations between them.
+
+Severe toxic and identity hate are more difficult for the model to identify. Looking through examples, I myself had a hard time telling toxic comments from severe toxic ones, so it makes sense to me that the model didn't pick up on the patter. Finally, threat didn't work at all, at least with the default threshold: no comments were correctly classified as a threat in the test set.[fn:1]
 ** Justification
-The final ROC AUC for this model is 0.972, a bit higher than the benchmark model of 0.96857. Given that these models are probably running on slightly different datasets, 
+The final ROC AUC for this model is 0.970, a bit higher than the benchmark model of 0.96857. Given that these models are probably running on slightly different datasets, I would say these results are comparable but not obviously better.
 * Conclusion
-While ROC AUC is a good metric for model comparison, it doesn't capture what the behavior of the model would be in the real world. For that, we should look at recall and precision.
-
-- basically, use it to augment human moderation. 
-
+While ROC AUC is a good metric for model comparison, it doesn't capture what the behavior of the model would be in the real world. For that, we should look at recall and precision. Unfortunately the picture is not so rosey. Some types of toxicity, like toxicity with 89% recall or obscenity with 82% recall, are relatively easy to identify, but others are much more difficult, like threats with only 4% recall. In the real world, this model would need to be augmented with some sort of functionality for users to manually flag toxic comments that were missed. Likewise, the precision of this model is too low to be acceptable on its own. No one wants their bengign comment deleted because of a false positive. In the real world, comments flagged by this model would have to be sent to a human moderator before being removed.
 * References
 #+LaTeX: \printbibliography[heading=none]
+
+* Footnotes
+
+[fn:1] As a side note, I intended to show some examples of comments that were correctly and incorrectly predicted for each class, but I decided against it because they're so awful to read. I investigated examples in the last cell of train.ipynb, and there's one example left in the output.
