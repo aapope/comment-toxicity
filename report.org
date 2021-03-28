@@ -1,0 +1,45 @@
+#+PROPERTY: header-args :exports none :tangle "~/orgs/bibliography/references.bib"
+#+LATEX_CLASS_OPTIONS: [12pt]
+#+LATEX_HEADER: \usepackage[natbib=true]{biblatex} \DeclareFieldFormat{apacase}{#1} \addbibresource{~/orgs/bibliography/references.bib}
+#+LATEX_HEADER: \usepackage{parskip}
+#+OPTIONS: <:nil c:nil todo:nil H:5 num:nil toc:nil
+
+* Definition
+
+** Project Overview
+Toxicity is a common problem in online forums and comment sections. Many people have had the experience of opening the comment section of an article only to be met with insults, obscenity, and hatred. Extensive human moderation is one solution, but at large scale it's quite costly, and it can be a harrowing task citep:verge-2019-facebook-moderation. The ability to augment human moderation with machine learning models to filter out the worst and most obvious toxic comments is critical.
+
+In this project, I created a classifier to identify several types of toxicity in online comments, including threats, obscenity, insults, and identity-based hate. This problem was originally posed in the Toxic Comment Classification Kaggle competition citep:kaggle-toxic-comments. 
+** Problem Statement
+The solution is to create a machine learning model that takes in the text of a comment and outputs a score for each of the toxicity labels, denoting the probability that the comment falls under one of those categories of toxicity. The scores would be used to flag comments for manual inspection by human moderators.
+** Metrics
+The main evaluation metric will be the mean label-wise ROC AUC:
+\begin{equation}
+\frac{1}{L} \sum_{l=1}^{L} AUC_{l}
+\end{equation}
+where L is the number of labels (in this case 6). Additionally, the AUC, precision and recall for each individual label will be analyzed as certain labels will be easier to identify than others.
+* Analysis
+
+** Data Exploration
+
+** Exploratory Visualization
+
+** Algorithms and Techniques
+
+** Benchmark
+
+* Methodology
+
+** Data Preprocessing
+
+** Implementation
+
+** Refinement
+
+* Results
+
+** Model Evaluation and Validation
+
+** Justification
+
+* Conclusion
